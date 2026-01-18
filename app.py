@@ -80,7 +80,7 @@ def send_bomber(mobile):
 
         print(f"Round {count} Finished.")
         count += 1
-        time.sleep(1) # Safe gap taaki saari APIs block na hon
+        time.sleep(5) # Safe gap taaki saari APIs block na hon
 
 @app.route('/')
 def index():
