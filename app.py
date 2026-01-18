@@ -1,76 +1,20 @@
-#!/usr/bin/python
-# -*- coding: UTF-8 -*-
-
 import os
-import shutil
-import sys
-import subprocess
-import string
-import random
-import json
-import re
 import time
-import argparse
-import zipfile
-from io import BytesIO
+import requests
+import threading
+import random
+from flask import Flask, render_template, request, jsonify
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
+app = Flask(__name__)
+active_tasks = {}
 
-from utils.decorators import MessageDecorator
-from utils.provider import APIProvider
-
-try:
-    import requests
-    from colorama import Fore, Style
-except ImportError:
-    print("\tSome dependencies could not be imported (possibly not installed)")
-    print(
-        "Type `pip3 install -r requirements.txt` to "
-        " install all required packages")
-    sys.exit(1)
-
-
-def readisdc():
-    with open("isdcodes.json") as file:
-        isdcodes = json.load(file)
-    return isdcodes
-
-
-def get_version():
-    try:
-        return open(".version", "r").read().strip()
-    except Exception:
-        return '1.0'
-
-
-def clr():
-    if os.name == "nt":
-        os.system("cls")
-    else:
-        os.system("clear")
-
-
-def bann_text():
-    clr()
-    logo = """
-   ████████ █████                 ██
-   ▒▒▒██▒▒▒ ██▒▒██                ██
-      ██    ██  ██        ██   ██ ██
-      ██    █████▒  ████  ███ ███ █████
-      ██    ██▒▒██ ██  ██ ██▒█▒██ ██▒▒██
-      ██    ██  ██ ██  ██ ██ ▒ ██ ██  ██
-      ██    █████▒ ▒████▒ ██   ██ █████▒
-      ▒▒    ▒▒▒▒▒   ▒▒▒▒  ▒▒   ▒▒ ▒▒▒▒▒
-                                         """
-    if ASCII_MODE:
-        logo = ""
-    version = "Version: "+__VERSION__
-    contributors = "Contributors: "+" ".join(__CONTRIBUTORS__)
-    print(random.choice(ALL_COLORS) + logo + RESET_ALL)
-    mesgdcrt.SuccessMessage(version)
-    mesgdcrt.SectionMessage(contributors)
-    print()
-
+# List of User Agents taaki har baar naya browser lage
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1"
+]
 
 def check_intr():
     try:
