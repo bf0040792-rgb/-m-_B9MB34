@@ -1,3 +1,135 @@
+from flask import Flask, render_template_string, request, jsonify
+import time
+
+app = Flask(__name__)
+
+# ==========================================
+# HTML INTERFACE (Design)
+# ==========================================
+HTML_CODE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Tester (UI Demo)</title>
+    <style>
+        body {
+            background-color: #0f0f0f;
+            color: #00ff41;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            border: 1px solid #00ff41;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+            text-align: center;
+            width: 300px;
+        }
+        h2 { margin-bottom: 20px; }
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #222;
+            border: 1px solid #00ff41;
+            color: white;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #00ff41;
+            color: black;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover { background: #00cc33; }
+        #status { margin-top: 20px; font-size: 14px; }
+        .loading { color: yellow; }
+        .success { color: #00ff41; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>SECURE OTP TESTER</h2>
+        <p style="font-size: 12px; color: #888;">(Educational UI Demo)</p>
+        
+        <input type="text" id="mobile" placeholder="Enter Mobile Number" maxlength="10">
+        <button onclick="sendOTP()">SEND OTP</button>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        function sendOTP() {
+            const mobile = document.getElementById('mobile').value;
+            const statusDiv = document.getElementById('status');
+
+            if (mobile.length < 10) {
+                statusDiv.innerHTML = "<span style='color:red;'>Invalid Number</span>";
+                return;
+            }
+
+            statusDiv.innerHTML = "<span class='loading'>Processing Request...</span>";
+
+            // Backend ko request bhejna
+            fetch('/send-otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ number: mobile })
+            })
+            .then(response => response.json())
+            .then(data => {
+                statusDiv.innerHTML = "<span class='success'>" + data.message + "</span>";
+            })
+            .catch(error => {
+                statusDiv.innerHTML = "<span style='color:red;'>Error!</span>";
+            });
+        }
+    </script>
+</body>
+</html>
+"""
+
+# ==========================================
+# BACKEND LOGIC (Python)
+# ==========================================
+@app.route('/')
+def home():
+    # Jab user website kholega, HTML dikhao
+    return render_template_string(HTML_CODE)
+
+@app.route('/send-otp', methods=['POST'])
+def send_otp():
+    data = request.json
+    mobile_number = data.get('number')
+    
+    # ---------------------------------------------------------
+    # ---------------------------------------------------------
+    
+    print(f"Request received for: {mobile_number}")
+    time.sleep(2)
+    return jsonify({
+        "status": "success", 
+        "message": f"Verified! Simulation OTP sent to {mobile_number}"
+    })
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000
 import requests
 import json
 
