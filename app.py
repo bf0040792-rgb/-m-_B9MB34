@@ -14,8 +14,8 @@ def send_legitimate_otp(mobile_number, api_key):
     }
     
     headers = {
-        "authorization": api_key,  # Aapki API Key yahan aayegi
-        "Content-Type": "application/json"
+    "authorization": api_key,  # Yahan code ek chhota token expect kar raha hai
+    ...
     }
 
     try:
