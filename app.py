@@ -8,7 +8,7 @@ app = Flask(__name__)
 active_tasks = {}
 
 def send_bomber(mobile):
-    count = 15
+    count = 2
     session = requests.Session()
     headers = {
         "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
