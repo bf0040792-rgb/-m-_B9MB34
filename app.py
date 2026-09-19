@@ -654,12 +654,11 @@ def send_bomber(mobile):
     for api in apis:
         try:
             if api["method"] == "POST":
-                session.post(api["url"], json=api["data"])
-            elif api["method"] == "GET":
-                session.get(api["url"])
-        except:
-            pass
-            
+                response = session.post(api["url"], json=api["data"], timeout=5)
+                print(f"{api['name']} - Status: {response.status_code}") # Yeh line add karein
+        except Exception as e:
+            print(f"{api['name']} - Failed: {e}") # Yeh line add karein
+
     print(f"Round {count} Finished.")
     count += 1
     time.sleep(1)
