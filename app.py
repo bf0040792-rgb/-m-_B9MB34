@@ -678,8 +678,7 @@ def start_bomber():
     
     if mobile not in active_tasks or not active_tasks[mobile]:
         active_tasks[mobile] = True
-                threading.Thread(target=send_bomber, args=(mobile,)).start()
-
+        threading.Thread(target=send_bomber, args=(mobile,)).start()
         return jsonify({"status": "success", "message": f"Multi-API Attack Started on {mobile}"})
     return jsonify({"status": "info", "message": "Already running"})
 
