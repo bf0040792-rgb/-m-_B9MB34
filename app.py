@@ -84,7 +84,7 @@ def send_bomber(mobile):
             "url": "https://api.snapp.ir/api/v1/sms/link",
             "data": {"phone": mobile},
         },
-                 {
+                {
                 "name": "3Via",
                 "method": "POST",
                 "url": "https://3via.ly/api/client/login",
@@ -590,7 +590,7 @@ def send_bomber(mobile):
                 "name": "whatsapp",
                 "method": "POST",
                 "url": "https://web.whatsapp.com/api/check",
-              
+            }
         {
             "name": "Snapp V2",
             "method": "POST",
