@@ -17,13 +17,15 @@
         <h2>ConfirmTkt OTP Sender</h2>
         <input type="number" id="mobile" placeholder="Enter 10 digit number">
         <br>
-        <button class="start" onclick="action('start')">Start OTP</button>
-        <button class="stop" onclick="action('stop')">Stop</button>
+        <button type="button" class="start" onclick="sendReq('start')">Start OTP</button>
+        <button type="button" class="stop" onclick="sendReq('stop')">Stop</button>
+        
         <p id="status"></p>
     </div>
 
     <script>
-        function action(type) {
+        function sendReq(type) {
+    
             const mobile = document.getElementById('mobile').value;
             const status = document.getElementById('status');
             
